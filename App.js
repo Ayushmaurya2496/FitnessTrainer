@@ -12,18 +12,17 @@ const flash = require('connect-flash');
 require('dotenv').config();
 const connectDB = require('./models/connect');
 (() => {
-    const raw = process.env.MONGODB_URI || process.env.MONGODB_URL;
+    // Use Render's provided MONGODB_URI or fallback to local
+    const raw = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/fitness-trainer';
     let mongoUri;
     if (raw) {
         const hasDbInPath = /\/(?!\/)[^/?]+(?:\?|$)/.test(raw);
         if (process.env.DB_NAME && !hasDbInPath) {
             mongoUri = `${raw.replace(/\/+$/, '')}/${process.env.DB_NAME}`;
         } else {
-            
             mongoUri = raw.replace(/^\/+/, '');
         }
     } else {
-        
         mongoUri = 'mongodb://localhost:27017/fitness-trainer';
     }
     connectDB(mongoUri);
@@ -31,7 +30,26 @@ const connectDB = require('./models/connect');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+    cors: {
+        origin: process.env.NODE_ENV === 'production' 
+            ? [process.env.FRONTEND_URL, process.env.RENDER_EXTERNAL_URL].filter(Boolean)
+            : ["http://localhost:3000", "http://127.0.0.1:3000"],
+        methods: ["GET", "POST"]
+    }
+});
+
+// Security middleware for production
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    app.use((req, res, next) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        next();
+    });
+}
+
 const { Session } = require('./models/session');
 const { User } = require('./models/user');
 app.set('view engine', 'ejs');
@@ -52,12 +70,14 @@ app.use(bodyParser.json({ limit: '5mb' }));
 app.set('trust proxy', 1);
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'dev-secret',
+    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Changed to false for production
     cookie: {
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
 app.use(flash());
@@ -133,20 +153,23 @@ app.post('/api/pose', async (req, res) => {
         const form = new FormData();
         form.append('file', imgBuffer, { filename: 'frame.jpg', contentType: 'image/jpeg' });
         
-        const response = await axios.post('http://localhost:8000/analyze_pose/', form, {
+        // Use environment variable for pose analysis service URL
+        const poseServiceUrl = process.env.POSE_SERVICE_URL || 'http://localhost:8000';
+        
+        const response = await axios.post(`${poseServiceUrl}/analyze_pose/`, form, {
             headers: form.getHeaders(),
             maxContentLength: Infinity,
-            maxBodyLength: Infinity
+            maxBodyLength: Infinity,
+            timeout: 10000 // 10 second timeout
         });
         return res.json(response.data);
     } catch (error) {
-        
         console.error('Pose API raw error:', error);
-        let errMsg = 'Unknown error';
-        if (error instanceof AggregateError && Array.isArray(error.errors)) {
-            errMsg = error.errors.map(e => e.message).join(' | ');
-        }
-        else if (error.isAxiosError) {
+        let errMsg = 'Pose analysis service unavailable';
+        
+        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+            errMsg = 'Pose analysis service is currently offline. Please try again later.';
+        } else if (error.isAxiosError) {
             if (error.response && error.response.data) {
                 errMsg = typeof error.response.data === 'string'
                     ? error.response.data
@@ -154,10 +177,10 @@ app.post('/api/pose', async (req, res) => {
             } else {
                 errMsg = error.message;
             }
-        }
-        else if (error.message) {
+        } else if (error.message) {
             errMsg = error.message;
         }
+        
         console.error('Pose API parsed error message:', errMsg);
         return res.status(500).json({ feedback: errMsg });
     }
@@ -176,17 +199,20 @@ io.on('connection', (socket) => {
     // Example----socket.emit('pose-alert', { message: 'Straighten Back' });
 });
 
-let PORT = parseInt(process.env.PORT) || 3000;
+let PORT = process.env.PORT || 3000;
 const startServer = (port) => {
-    server.listen(port, () => {
-        console.log(`Server running on http://localhost:${port}`);
+    server.listen(port, '0.0.0.0', () => {
+        console.log(`Server running on port ${port}`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
+    
     server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
+        if (err.code === 'EADDRINUSE' && process.env.NODE_ENV !== 'production') {
             console.error(`Port ${port} in use, trying ${port + 1}...`);
             startServer(port + 1);
         } else {
-            console.error(err);
+            console.error('Server error:', err);
+            process.exit(1);
         }
     });
 };

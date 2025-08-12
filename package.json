@@ -2,6 +2,9 @@
   "name": "fitness-trainer",
   "version": "1.0.0",
   "main": "App.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node App.js",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,7 +13,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "AI-powered fitness trainer with pose detection",
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/drawing_utils": "^0.3.1675466124",
