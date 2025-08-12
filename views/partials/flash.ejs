@@ -1,0 +1,14 @@
+<% if (flashSuccess && flashSuccess.length) { %>
+  <div class="flash flash-success">
+    <% flashSuccess.forEach(msg => { %>
+      <div><%= msg %></div>
+    <% }) %>
+  </div>
+<% } %>
+<% if (flashError && flashError.length) { %>
+  <div class="flash flash-error">
+    <% flashError.forEach(msg => { %>
+      <div><%= msg %></div>
+    <% }) %>
+  </div>
+<% } %>

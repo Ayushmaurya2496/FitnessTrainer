@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login • AI Fitness Trainer</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <%- include('../partials/flash') %>
+  <main class="container" style="max-width:560px;padding:24px 16px;">
+    <h1>Login</h1>
+    <% if (query && query.error === 'invalid') { %>
+      <p class="error">Invalid credentials. Please try again.</p>
+    <% } %>
+    <form id="pageLoginForm" class="modal-body" style="gap:10px">
+      <label>Email or Username</label>
+      <input type="text" name="identifier" placeholder="you@example.com or username" required>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="••••••••" required>
+      <button type="submit" class="btn full">Login</button>
+    </form>
+    <p class="muted" style="margin-top:10px">No account? <a href="/auth/register">Register</a></p>
+  </main>
+  <script>
+    (function(){
+      const form = document.getElementById('pageLoginForm');
+      form && form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const fd = new FormData(form);
+        const identifier = (fd.get('identifier')||'').toString().trim();
+        const password = (fd.get('password')||'').toString();
+        if(!identifier || !password) return;
+        const body = identifier.includes('@') ? { email: identifier, password } : { username: identifier, password };
+        const res = await fetch('/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        const data = await res.json().catch(()=>({}));
+        if (res.ok) { location.href = '/dashboard'; }
+        else { alert((data && data.message) || 'Login failed'); }
+      });
+    })();
+  </script>
+</body>
+</html>

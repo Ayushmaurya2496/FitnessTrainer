@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Fitness Trainer</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  
+  <% if (!user) { %>
+  <div id="authProtectionOverlay" class="auth-protection-overlay">
+    <div class="auth-protection-content">
+      <h2>🔒 Login Required</h2>
+      <p>You need to be logged in to access the pose detection features.</p>
+      <div class="auth-protection-buttons">
+        <button id="protectionLoginBtn" class="btn btn-lg">Login</button>
+        <button id="protectionRegisterBtn" class="btn btn-outline btn-lg">Register</button>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <%- include('partials/flash') %>
+
+  <div id="mainContent" class="<%= !user ? 'blurred-content' : '' %>">
+    <h1>Yoga Pose Correction</h1>
+    <div id="video-container" style="position: relative; width: 640px; height: 480px;">
+      <video id="webcam" autoplay playsinline muted style="position: absolute; top: 0; left: 0; background:#000;" width="640" height="480"></video>
+      <canvas id="overlay" style="position: absolute; top: 0; left: 0;" width="640" height="480"></canvas>
+    </div>
+    <div id="feedback"></div>
+    <button id="correctPoseBtn">Correct My Pose</button>
+  </div>
+
+  <script defer src="/vendor/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script defer src="/vendor/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <script defer src="/vendor/@mediapipe/pose/pose.js"></script>
+  <script defer src="/js/pose.js"></script>
+  <script defer src="/js/pose-auth-protection.js"></script>
+</body>
+</html>

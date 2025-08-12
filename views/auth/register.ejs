@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register • AI Fitness Trainer</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <%- include('../partials/flash') %>
+  <main class="container" style="max-width:560px;padding:24px 16px;">
+    <h1>Create your account</h1>
+    <% if (query && query.error === 'exists') { %>
+      <p class="error">User with the same username or email already exists.</p>
+    <% } else if (query && query.error === 'missing') { %>
+      <p class="error">Please fill in all required fields.</p>
+    <% } else if (query && query.error === 'server') { %>
+      <p class="error">Server error. Please try again.</p>
+    <% } %>
+    <form method="post" action="/auth/register?redirect=1" class="modal-body" style="gap:10px">
+      <label>Name</label>
+      <input type="text" name="username" placeholder="johndoe" required>
+      <label>Email</label>
+      <input type="email" name="email" placeholder="you@example.com" required>
+      <label>Full name</label>
+      <input type="text" name="fullName" placeholder="John Doe" required>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="••••••••" required>
+      <button type="submit" class="btn full">Register</button>
+    </form>
+    <p class="muted" style="margin-top:10px">Already have an account? <a href="/auth/login">Login</a></p>
+  </main>
+</body>
+</html>

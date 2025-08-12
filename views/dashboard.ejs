@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard • AI Fitness Trainer</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+</head>
+<body>
+  <%- include('partials/header') %>
+  <%- include('partials/flash') %>
+  <main class="container">
+    <h1>Welcome, <%= (user && (user.fullName || user.username)) || 'Athlete' %></h1>
+    <p class="muted">This is a protected page. Your recent sessions and accuracy metrics can appear here.</p>
+    <div class="card" style="margin-top:16px;padding:12px 14px;background:var(--surface);border:1px solid rgba(255,255,255,.08);border-radius:12px;">
+      <p style="margin:0;color:var(--muted)">Coming soon: session history, best form scores, and personalized tips.</p>
+    </div>
+  </main>
+</body>
+</html>

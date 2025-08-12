@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Fitness Trainer • Home</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="description" content="Real-time pose detection and form feedback for your workouts." />
+  <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+  <link rel="preload" href="/images/logo.svg" as="image">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <%- include('partials/flash') %>
+
+  <main class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <h1>Train smarter with AI-powered Pose Detection</h1>
+        <p>
+          Our app uses on‑device computer vision to analyze your posture in real time. Get instant cues on alignment,
+          reduce injury risk, and make every rep count—no special hardware required.
+        </p>
+        <ul class="hero-points">
+          <li>Webcam-based, private, and fast</li>
+          <li>Live skeleton overlay and joint tracking</li>
+          <li>Actionable feedback on form and symmetry</li>
+        </ul>
+        <a class="btn btn-lg" href="/pose" aria-label="Start pose detection">Start</a>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="card">
+          <img src="/images/logo.svg" alt="AI Fitness Trainer Logo" />
+          <div class="card-caption">Ready when you are. Click Start to enable your camera.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© <%= new Date().getFullYear() %> AI Fitness Trainer</small>
+    </div>
+  </footer>
+</body>
+</html>
