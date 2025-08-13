@@ -101,6 +101,17 @@ const Progress = mongoose.model('Progress', new mongoose.Schema({
 app.get('/', (req, res) => {
     res.render('home');
 });
+
+// Health check endpoint for Vercel deployment
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0'
+    });
+});
+
 app.get('/pose', (req, res) => {
     // Allow access to pose page but show protection overlay if not authenticated
     res.render('index');
