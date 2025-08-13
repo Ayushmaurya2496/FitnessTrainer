@@ -1,13 +1,17 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const connectDB = async (mongoUri) => {
+const connectDB = async (uri) => {
     try {
-    const connectionInstance = await mongoose.connect(mongoUri);
-        console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`);
+        await mongoose.connect(uri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000 // 5 sec me timeout agar server unreachable
+        });
+        console.log('✅ MongoDB Atlas Connected Successfully!');
     } catch (error) {
-        console.log("MONGODB connection FAILED ", error);
+        console.error('❌ MongoDB Connection Failed:', error.message);
         process.exit(1);
     }
-}
+};
 
 module.exports = connectDB;

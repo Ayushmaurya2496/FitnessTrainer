@@ -7,28 +7,25 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 
 require('dotenv').config();
+require('dotenv').config();
 const connectDB = require('./models/connect');
-(() => {
-    const raw = process.env.MONGODB_URI || process.env.MONGODB_URL;
-    let mongoUri;
-    if (raw) {
-        const hasDbInPath = /\/(?!\/)[^/?]+(?:\?|$)/.test(raw);
-        if (process.env.DB_NAME && !hasDbInPath) {
-            mongoUri = `${raw.replace(/\/+$/, '')}/${process.env.DB_NAME}`;
-        } else {
-            
-            mongoUri = raw.replace(/^\/+/, '');
-        }
-    } else {
-        
-        mongoUri = 'mongodb://localhost:27017/fitness-trainer';
+
+(async () => {
+    try {
+        const mongoUri = process.env.MONGODB_URI;
+        if (!mongoUri) throw new Error('❌ MONGODB_URI is not defined in .env file');
+
+        console.log('🔄 Connecting to MongoDB Atlas...');
+        await connectDB(mongoUri);
+    } catch (err) {
+        console.error('❌ Database connection failed:', err.message);
+        process.exit(1);
     }
-    connectDB(mongoUri);
 })();
+
 
 const app = express();
 const server = http.createServer(app);
@@ -55,15 +52,10 @@ app.set('trust proxy', 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGODB_URI || process.env.MONGODB_URL || 'mongodb://localhost:27017/fitness-trainer',
-        touchAfter: 24 * 3600 // lazy session update
-    }),
+    saveUninitialized: true,
     cookie: {
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        secure: process.env.NODE_ENV === 'production'
     }
 }));
 app.use(flash());
@@ -107,17 +99,6 @@ const Progress = mongoose.model('Progress', new mongoose.Schema({
 app.get('/', (req, res) => {
     res.render('home');
 });
-
-// Health check endpoint for Vercel deployment
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0'
-    });
-});
-
 app.get('/pose', (req, res) => {
     // Allow access to pose page but show protection overlay if not authenticated
     res.render('index');
@@ -359,11 +340,4 @@ const startServer = (port) => {
         }
     });
 };
-
-// Only start server if not in Vercel environment
-if (!process.env.VERCEL) {
-    startServer(PORT);
-}
-
-// Export app for Vercel
-module.exports = app;
+startServer(PORT);
