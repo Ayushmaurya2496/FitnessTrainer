@@ -179,18 +179,98 @@ function onResults(results) {
       canvasCtx,
       results.poseLandmarks,
       POSE_CONNECTIONS,
-      { color: '#00FF00', lineWidth: 4 }
+      { color: '#61c7edff', lineWidth: 4 }
     );
     if (drawLandmarksFn) drawLandmarksFn(canvasCtx, results.poseLandmarks, {
-      color: '#FF0000',
+      color: '#7fedccff',
       lineWidth: 2
     });
 
-    // Example feedback on back straightness
-    const leftShoulder = results.poseLandmarks[11];
-    const rightShoulder = results.poseLandmarks[12];
-    const backAngle = Math.abs((leftShoulder.y - rightShoulder.y) * 100);
-    feedbackDiv.innerText = backAngle > 5 ? 'Straighten your back' : 'Good posture';
+    // Enhanced feedback with real-time accuracy
+    const feedback = calculateRealTimeAccuracy(results.poseLandmarks);
+    
+    // Update session manager if available
+    if (window.poseSessionManager && window.poseSessionManager.sessionActive) {
+      window.poseSessionManager.handleAnalysisResult({
+        accuracy: feedback.accuracy,
+        feedback: feedback.message,
+        success: true,
+        landmarks: results.poseLandmarks
+      });
+    } else {
+      // Fallback display
+      feedbackDiv.innerText = feedback.message;
+    }
+  } else {
+    // No pose detected
+    if (window.poseSessionManager && window.poseSessionManager.sessionActive) {
+      window.poseSessionManager.updateFeedback('No pose detected - ensure you\'re fully visible');
+      window.poseSessionManager.updateAccuracyDisplay(0, 'No pose detected');
+    } else {
+      feedbackDiv.innerText = 'No pose detected - ensure you\'re fully visible';
+    }
   }
   canvasCtx.restore();
+}
+
+// Enhanced real-time accuracy calculation
+function calculateRealTimeAccuracy(landmarks) {
+  try {
+    let accuracy = 100;
+    let feedback = [];
+    
+    // Get key landmarks
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+    
+    // Check shoulder alignment
+    const shoulderDiff = Math.abs(leftShoulder.y - rightShoulder.y);
+    if (shoulderDiff > 0.05) {
+      feedback.push('Level your shoulders');
+      accuracy -= 15;
+    } else {
+      feedback.push('Good shoulder alignment');
+    }
+    
+    // Check hip alignment
+    const hipDiff = Math.abs(leftHip.y - rightHip.y);
+    if (hipDiff > 0.03) {
+      feedback.push('Align your hips');
+      accuracy -= 10;
+    } else {
+      feedback.push('Good hip alignment');
+    }
+    
+    // Check overall posture
+    const avgShoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+    const avgHipY = (leftHip.y + rightHip.y) / 2;
+    
+    if (avgShoulderY > avgHipY) {
+      feedback.push('Stand more upright');
+      accuracy -= 20;
+    }
+    
+    // Check landmark visibility (stability)
+    const visibleLandmarks = landmarks.filter(lm => lm.visibility > 0.8).length;
+    if (visibleLandmarks < 25) {
+      feedback.push('Stay more stable');
+      accuracy -= 10;
+    }
+    
+    accuracy = Math.max(0, Math.min(100, accuracy));
+    
+    return {
+      accuracy: Math.round(accuracy),
+      message: feedback.length > 0 ? feedback.join(' | ') : 'Excellent posture!'
+    };
+    
+  } catch (error) {
+    console.error('Real-time accuracy calculation error:', error);
+    return {
+      accuracy: 0,
+      message: 'Calculating...'
+    };
+  }
 }

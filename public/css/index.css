@@ -1,0 +1,200 @@
+/* Pose Detection Page Styles */
+
+.pose-container {
+  display: flex;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.video-section {
+  flex: 2;
+}
+
+.sidebar {
+  flex: 1;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.accuracy-display {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  border-left: 4px solid #28a745;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.accuracy-score {
+  font-size: 2em;
+  font-weight: bold;
+  color: #28a745;
+  margin: 10px 0;
+}
+
+.session-controls {
+  margin: 20px 0;
+}
+
+.btn {
+  background: #0056b3;  /* Darker blue */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background: #003d82;  /* Even darker on hover */
+}
+
+.btn-success {
+  background: #1e7e34;  /* Darker green */
+}
+
+.btn-success:hover {
+  background: #155724;  /* Even darker green on hover */
+}
+
+.btn-secondary {
+  background: #495057;  /* Darker gray */
+}
+
+.btn-secondary:hover {
+  background: #343a40;  /* Even darker gray on hover */
+}
+
+.session-history {
+  margin-top: 20px;
+}
+
+.history-item {
+  background: #fff;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  border-left: 3px solid #0056b3;  /* Darker blue instead of #007bff */
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.stat-card {
+  background: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #0056b3;  /* Darker blue instead of #007bff */
+}
+
+.feedback-display {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+  border-left: 4px solid #0056b3;  /* Darker blue instead of #17a2b8 */
+}
+
+#video-container {
+  position: relative;
+  width: 640px;
+  height: 480px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.session-timer {
+  background: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
+  font-family: monospace;
+  font-size: 1.2em;
+  border-left: 4px solid #0056b3;  /* Darker blue */
+}
+
+.hidden {
+  display: none;
+}
+
+/* Sidebar styling */
+.sidebar h3, .sidebar h4 {
+  color: #003d82;  /* Very dark blue for headings */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .pose-container {
+    flex-direction: column;
+    padding: 10px;
+    gap: 15px;
+  }
+  
+  .video-section {
+    flex: none;
+  }
+  
+  .sidebar {
+    flex: none;
+  }
+  
+  #video-container {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    aspect-ratio: 4/3;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  
+  .btn {
+    width: 100%;
+    margin: 2px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .pose-container {
+    padding: 5px;
+  }
+  
+  .sidebar {
+    padding: 15px;
+  }
+  
+  .accuracy-display {
+    padding: 10px;
+  }
+  
+  .accuracy-score {
+    font-size: 1.5em;
+  }
+  
+  .session-controls {
+    margin: 10px 0;
+  }
+}

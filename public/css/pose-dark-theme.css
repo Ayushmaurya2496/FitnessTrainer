@@ -1,0 +1,154 @@
+/* Enhanced Dark Blue Theme for Pose Detection */
+
+:root {
+  --primary-blue: #0056b3;
+  --primary-blue-dark: #003d82;
+  --primary-blue-hover: #004085;
+  --success-green: #1e7e34;
+  --success-green-dark: #155724;
+  --warning-orange: #e67e22;
+  --danger-red: #c0392b;
+  --text-dark: #495057;
+  --text-darker: #003d82;
+  --background-light: #f8f9fa;
+  --shadow-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced stat values */
+.stat-value {
+  color: var(--primary-blue) !important;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced buttons */
+.btn {
+  background: var(--primary-blue) !important;
+  border: 1px solid var(--primary-blue) !important;
+  box-shadow: 0 2px 4px rgba(0, 86, 179, 0.2);
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: var(--primary-blue-hover) !important;
+  border-color: var(--primary-blue-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 86, 179, 0.3);
+}
+
+.btn-success {
+  background: var(--success-green) !important;
+  border-color: var(--success-green) !important;
+}
+
+.btn-success:hover {
+  background: var(--success-green-dark) !important;
+  border-color: var(--success-green-dark) !important;
+}
+
+/* Enhanced sidebar */
+.sidebar {
+  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 1px solid rgba(0, 86, 179, 0.1);
+}
+
+.sidebar h3, .sidebar h4 {
+  color: var(--text-darker) !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced history items */
+.history-item {
+  border-left: 4px solid var(--primary-blue) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%) !important;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2);
+}
+
+/* Enhanced accuracy display */
+.accuracy-display {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border-left: 4px solid var(--success-green) !important;
+  box-shadow: 0 4px 12px rgba(30, 126, 52, 0.15);
+}
+
+.accuracy-score {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Enhanced feedback display */
+.feedback-display {
+  border-left: 4px solid var(--primary-blue) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%) !important;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+/* Enhanced session timer */
+.session-timer {
+  border-left: 4px solid var(--primary-blue) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%) !important;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  font-weight: 600;
+  color: var(--text-darker);
+}
+
+/* Enhanced stat cards */
+.stat-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border: 1px solid rgba(0, 86, 179, 0.1);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2);
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--primary-blue) !important;
+}
+
+.text-success {
+  color: var(--success-green) !important;
+}
+
+.text-warning {
+  color: var(--warning-orange) !important;
+}
+
+.text-danger {
+  color: var(--danger-red) !important;
+}
+
+/* Enhanced video container */
+#video-container {
+  box-shadow: 0 8px 24px rgba(0, 86, 179, 0.2) !important;
+  border: 2px solid rgba(0, 86, 179, 0.1);
+}
+
+/* Loading states */
+.loading {
+  color: var(--text-dark);
+  opacity: 0.7;
+}
+
+/* Success states */
+.success-text {
+  color: var(--success-green);
+  font-weight: 600;
+}
+
+/* Error states */
+.error-text {
+  color: var(--danger-red);
+  font-weight: 600;
+}

@@ -2,18 +2,21 @@
   "name": "fitness-trainer",
   "version": "1.0.0",
   "main": "App.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
     "start": "node App.js",
+    "dev": "nodemon App.js",
+    "python-setup": "cd python-backend && pip install -r requirements.txt",
+    "python-start": "cd python-backend && python pose_analyzer.py",
+    "python-webcam": "cd python-backend && python webcam_detector.py",
+    "python-rtsp": "cd python-backend && python rtsp_detector.py",
+    "start-all": "concurrently \"npm start\" \"npm run python-start\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "echo postinstall"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "AI-powered fitness trainer with pose detection",
+  "description": "",
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/drawing_utils": "^0.3.1675466124",
@@ -29,6 +32,7 @@
     "express-session": "^1.18.2",
     "form-data": "^4.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.18.0",
     "mongoose": "^8.16.5",
     "socket.io": "^4.8.1"
   }

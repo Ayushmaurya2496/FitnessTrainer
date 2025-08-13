@@ -12,17 +12,18 @@ const flash = require('connect-flash');
 require('dotenv').config();
 const connectDB = require('./models/connect');
 (() => {
-    // Use Render's provided MONGODB_URI or fallback to local
-    const raw = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/fitness-trainer';
+    const raw = process.env.MONGODB_URI || process.env.MONGODB_URL;
     let mongoUri;
     if (raw) {
         const hasDbInPath = /\/(?!\/)[^/?]+(?:\?|$)/.test(raw);
         if (process.env.DB_NAME && !hasDbInPath) {
             mongoUri = `${raw.replace(/\/+$/, '')}/${process.env.DB_NAME}`;
         } else {
+            
             mongoUri = raw.replace(/^\/+/, '');
         }
     } else {
+        
         mongoUri = 'mongodb://localhost:27017/fitness-trainer';
     }
     connectDB(mongoUri);
@@ -30,26 +31,7 @@ const connectDB = require('./models/connect');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-    cors: {
-        origin: process.env.NODE_ENV === 'production' 
-            ? [process.env.FRONTEND_URL, process.env.RENDER_EXTERNAL_URL].filter(Boolean)
-            : ["http://localhost:3000", "http://127.0.0.1:3000"],
-        methods: ["GET", "POST"]
-    }
-});
-
-// Security middleware for production
-if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-    app.use((req, res, next) => {
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('X-Frame-Options', 'DENY');
-        res.setHeader('X-XSS-Protection', '1; mode=block');
-        next();
-    });
-}
-
+const io = socketIo(server);
 const { Session } = require('./models/session');
 const { User } = require('./models/user');
 app.set('view engine', 'ejs');
@@ -70,14 +52,12 @@ app.use(bodyParser.json({ limit: '5mb' }));
 app.set('trust proxy', 1);
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
-    saveUninitialized: false, // Changed to false for production
+    saveUninitialized: true,
     cookie: {
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        secure: process.env.NODE_ENV === 'production'
     }
 }));
 app.use(flash());
@@ -113,7 +93,9 @@ app.use((req, res, next) => {
 
 const Progress = mongoose.model('Progress', new mongoose.Schema({
     date: { type: Date, default: Date.now },
-    accuracy: Number
+    accuracy: { type: Number, min: 0, max: 100 },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+    createdAt: { type: Date, default: Date.now }
 }));
 
 app.get('/', (req, res) => {
@@ -153,23 +135,20 @@ app.post('/api/pose', async (req, res) => {
         const form = new FormData();
         form.append('file', imgBuffer, { filename: 'frame.jpg', contentType: 'image/jpeg' });
         
-        // Use environment variable for pose analysis service URL
-        const poseServiceUrl = process.env.POSE_SERVICE_URL || 'http://localhost:8000';
-        
-        const response = await axios.post(`${poseServiceUrl}/analyze_pose/`, form, {
+        const response = await axios.post('http://localhost:8000/analyze_pose/', form, {
             headers: form.getHeaders(),
             maxContentLength: Infinity,
-            maxBodyLength: Infinity,
-            timeout: 10000 // 10 second timeout
+            maxBodyLength: Infinity
         });
         return res.json(response.data);
     } catch (error) {
-        console.error('Pose API raw error:', error);
-        let errMsg = 'Pose analysis service unavailable';
         
-        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
-            errMsg = 'Pose analysis service is currently offline. Please try again later.';
-        } else if (error.isAxiosError) {
+        console.error('Pose API raw error:', error);
+        let errMsg = 'Unknown error';
+        if (error instanceof AggregateError && Array.isArray(error.errors)) {
+            errMsg = error.errors.map(e => e.message).join(' | ');
+        }
+        else if (error.isAxiosError) {
             if (error.response && error.response.data) {
                 errMsg = typeof error.response.data === 'string'
                     ? error.response.data
@@ -177,12 +156,162 @@ app.post('/api/pose', async (req, res) => {
             } else {
                 errMsg = error.message;
             }
-        } else if (error.message) {
+        }
+        else if (error.message) {
             errMsg = error.message;
         }
-        
         console.error('Pose API parsed error message:', errMsg);
         return res.status(500).json({ feedback: errMsg });
+    }
+});
+
+// Enhanced session and accuracy management
+app.post('/api/save-session', async (req, res) => {
+    try {
+        const { accuracy, feedback, poseName, landmarks } = req.body;
+        
+        // Get user from token if available
+        let userId = null;
+        try {
+            const jwt = require('jsonwebtoken');
+            const token = req.cookies.accessToken;
+            if (token && process.env.ACCESS_TOKEN_SECRET) {
+                const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+                userId = payload._id;
+            }
+        } catch (e) {
+            // Continue without user (guest session)
+        }
+
+        // Save session data
+        const sessionData = {
+            user: userId,
+            poseName: poseName || 'General Pose',
+            accuracy: accuracy || 0,
+            feedback: feedback || 'No feedback available',
+            landmarks: landmarks ? JSON.stringify(landmarks) : null,
+            date: new Date()
+        };
+
+        const session = await Session.create(sessionData);
+        
+        // Also save to Progress model for backward compatibility
+        await Progress.create({ 
+            accuracy: accuracy || 0,
+            date: new Date(),
+            userId: userId
+        });
+
+        res.json({ 
+            success: true, 
+            sessionId: session._id,
+            message: 'Session saved successfully'
+        });
+    } catch (error) {
+        console.error('Save session error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to save session' 
+        });
+    }
+});
+
+// Get user's session history
+app.get('/api/session-history', async (req, res) => {
+    try {
+        let userId = null;
+        try {
+            const jwt = require('jsonwebtoken');
+            const token = req.cookies.accessToken;
+            if (token && process.env.ACCESS_TOKEN_SECRET) {
+                const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+                userId = payload._id;
+            }
+        } catch (e) {
+            // Continue without user
+        }
+
+        // Get sessions (user-specific or all if guest)
+        const query = userId ? { user: userId } : {};
+        const sessions = await Session.find(query)
+            .sort({ date: -1 })
+            .limit(10)
+            .lean();
+
+        // Calculate statistics
+        const totalSessions = sessions.length;
+        const avgAccuracy = totalSessions > 0 
+            ? Math.round(sessions.reduce((sum, s) => sum + s.accuracy, 0) / totalSessions)
+            : 0;
+        const bestAccuracy = totalSessions > 0 
+            ? Math.max(...sessions.map(s => s.accuracy))
+            : 0;
+
+        res.json({
+            success: true,
+            sessions: sessions,
+            stats: {
+                totalSessions,
+                avgAccuracy,
+                bestAccuracy,
+                recentAccuracy: sessions[0]?.accuracy || 0
+            }
+        });
+    } catch (error) {
+        console.error('Get session history error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch session history' 
+        });
+    }
+});
+
+// Get real-time accuracy stats
+app.get('/api/accuracy-stats', async (req, res) => {
+    try {
+        let userId = null;
+        try {
+            const jwt = require('jsonwebtoken');
+            const token = req.cookies.accessToken;
+            if (token && process.env.ACCESS_TOKEN_SECRET) {
+                const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+                userId = payload._id;
+            }
+        } catch (e) {
+            // Continue without user
+        }
+
+        // Get recent sessions for stats
+        const query = userId ? { user: userId } : {};
+        const recentSessions = await Session.find(query)
+            .sort({ date: -1 })
+            .limit(5)
+            .lean();
+
+        const todaySessions = await Session.find({
+            ...query,
+            date: { 
+                $gte: new Date(new Date().setHours(0, 0, 0, 0)) 
+            }
+        }).lean();
+
+        const todayAvg = todaySessions.length > 0
+            ? Math.round(todaySessions.reduce((sum, s) => sum + s.accuracy, 0) / todaySessions.length)
+            : 0;
+
+        res.json({
+            success: true,
+            todayAverage: todayAvg,
+            todayCount: todaySessions.length,
+            recentSessions: recentSessions.slice(0, 3),
+            lastAccuracy: recentSessions[0]?.accuracy || 0
+        });
+    } catch (error) {
+        console.error('Get accuracy stats error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch accuracy stats' 
+        });
     }
 });
 
@@ -199,20 +328,17 @@ io.on('connection', (socket) => {
     // Example----socket.emit('pose-alert', { message: 'Straighten Back' });
 });
 
-let PORT = process.env.PORT || 3000;
+let PORT = parseInt(process.env.PORT) || 3000;
 const startServer = (port) => {
-    server.listen(port, '0.0.0.0', () => {
-        console.log(`Server running on port ${port}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    server.listen(port, () => {
+        console.log(`Server running on http://localhost:${port}`);
     });
-    
     server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE' && process.env.NODE_ENV !== 'production') {
+        if (err.code === 'EADDRINUSE') {
             console.error(`Port ${port} in use, trying ${port + 1}...`);
             startServer(port + 1);
         } else {
-            console.error('Server error:', err);
-            process.exit(1);
+            console.error(err);
         }
     });
 };

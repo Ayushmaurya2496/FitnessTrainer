@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI Fitness Trainer</title>
+  <title>AI Fitness Trainer - Pose Detection</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/pose-dark-theme.css">
 </head>
 <body>
   <%- include('partials/header') %>
@@ -23,19 +25,88 @@
   <%- include('partials/flash') %>
 
   <div id="mainContent" class="<%= !user ? 'blurred-content' : '' %>">
-    <h1>Yoga Pose Correction</h1>
-    <div id="video-container" style="position: relative; width: 640px; height: 480px;">
-      <video id="webcam" autoplay playsinline muted style="position: absolute; top: 0; left: 0; background:#000;" width="640" height="480"></video>
-      <canvas id="overlay" style="position: absolute; top: 0; left: 0;" width="640" height="480"></canvas>
+    <div class="pose-container">
+      <!-- Video Section -->
+      <div class="video-section">
+        <h1>🧘‍♀️ AI Pose Detection</h1>
+        <div id="video-container">
+          <video id="webcam" autoplay playsinline muted style="position: absolute; top: 0; left: 0; background:#000;" width="640" height="480"></video>
+          <canvas id="overlay" style="position: absolute; top: 0; left: 0;" width="640" height="480"></canvas>
+        </div>
+        
+        <div class="session-controls">
+          <button id="startPoseBtn" class="btn btn-success">🎥 Start Pose Detection</button>
+          <button id="correctPoseBtn" class="btn">📸 Analyze Current Pose</button>
+          <button id="saveSessionBtn" class="btn btn-success hidden">💾 Save Session</button>
+          <button id="stopSessionBtn" class="btn btn-secondary hidden">⏹️ Stop Session</button>
+        </div>
+        
+        <div id="feedback" class="feedback-display">
+          <strong>Feedback:</strong> <span id="feedbackText">Ready to start pose detection...</span>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h3>📊 Session Stats</h3>
+        
+        <!-- Current Accuracy -->
+        <div class="accuracy-display">
+          <div>Current Accuracy</div>
+          <div id="currentAccuracy" class="accuracy-score">--</div>
+          <div id="accuracyStatus">Not started</div>
+        </div>
+        
+        <!-- Session Timer -->
+        <div class="session-timer">
+          <strong>Session Time:</strong><br>
+          <span id="sessionTimer">00:00</span>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="todayCount">--</div>
+            <div>Today's Sessions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="todayAvg">--</div>
+            <div>Today's Average</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="bestScore">--</div>
+            <div>Best Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalSessions">--</div>
+            <div>Total Sessions</div>
+          </div>
+        </div>
+        
+        <!-- History Toggle -->
+        <div style="margin: 20px 0;">
+          <button id="toggleHistoryBtn" class="btn">📋 Show Previous History</button>
+          <button id="refreshStatsBtn" class="btn btn-secondary">🔄 Refresh Stats</button>
+        </div>
+        
+        <!-- Session History -->
+        <div id="sessionHistory" class="session-history hidden">
+          <h4>📈 Recent Sessions</h4>
+          <div id="historyList">
+            <div style="text-align: center; color: #666;">
+              Loading history...
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="feedback"></div>
-    <button id="correctPoseBtn">Correct My Pose</button>
   </div>
 
   <script defer src="/vendor/@mediapipe/camera_utils/camera_utils.js"></script>
   <script defer src="/vendor/@mediapipe/drawing_utils/drawing_utils.js"></script>
   <script defer src="/vendor/@mediapipe/pose/pose.js"></script>
   <script defer src="/js/pose.js"></script>
+  <script defer src="/js/pose-session-manager.js"></script>
   <script defer src="/js/pose-auth-protection.js"></script>
 </body>
 </html>
