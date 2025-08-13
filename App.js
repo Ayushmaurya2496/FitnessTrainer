@@ -7,6 +7,7 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 
 require('dotenv').config();
@@ -54,10 +55,15 @@ app.set('trust proxy', 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI || process.env.MONGODB_URL || 'mongodb://localhost:27017/fitness-trainer',
+        touchAfter: 24 * 3600 // lazy session update
+    }),
     cookie: {
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
 app.use(flash());
@@ -353,4 +359,11 @@ const startServer = (port) => {
         }
     });
 };
-startServer(PORT);
+
+// Only start server if not in Vercel environment
+if (!process.env.VERCEL) {
+    startServer(PORT);
+}
+
+// Export app for Vercel
+module.exports = app;
