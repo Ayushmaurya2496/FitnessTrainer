@@ -1,9 +1,10 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 opencv-python==4.8.1.78
-# mediapipe 0.10.7 has no wheels for Python 3.12; using a compatible release
-mediapipe==0.10.21
-# numpy 1.24.x doesn't support Python 3.12; pin to the latest 1.x that does
+# Use mediapipe 0.10.21 for Python 3.12 locally; fallback to 0.10.14 for Python <3.12 (Render pinned to 3.11)
+mediapipe==0.10.21; python_version >= "3.12"
+mediapipe==0.10.14; python_version < "3.12"
+# numpy 1.26.x supports Python 3.11 and 3.12
 numpy==1.26.4
 Pillow==10.0.1
 python-multipart==0.0.6
