@@ -102,21 +102,28 @@ class PoseSessionManager {
             
             // Convert to blob and send to backend
             canvas.toBlob(async (blob) => {
-                const formData = new FormData();
-                formData.append('file', blob, 'pose-frame.jpg');
-                
-                this.updateFeedback('Analyzing pose...');
-                
-                const response = await fetch('/api/pose', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    this.handleAnalysisResult(result);
-                } else {
-                    throw new Error('Analysis failed');
+                try {
+                    if (!blob) throw new Error('Failed to capture frame');
+                    const formData = new FormData();
+                    formData.append('file', blob, 'pose-frame.jpg');
+                    
+                    this.updateFeedback('Analyzing pose...');
+                    
+                    const response = await fetch('/api/pose', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.handleAnalysisResult(result);
+                    } else {
+                        const text = await response.text().catch(() => '');
+                        throw new Error(text || 'Analysis failed');
+                    }
+                } catch (err) {
+                    console.error('Analyze pose callback error:', err);
+                    this.updateFeedback('Error analyzing pose. Please try again.');
                 }
             }, 'image/jpeg', 0.8);
             

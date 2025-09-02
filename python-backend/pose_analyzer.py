@@ -112,21 +112,31 @@ class PoseAnalyzer:
     def calculate_angle(self, point1, point2, point3):
         """Calculate angle between three points"""
         try:
+            # Validate inputs
+            for p in (point1, point2, point3):
+                if p is None or "x" not in p or "y" not in p:
+                    return 0
             # Convert to numpy arrays
-            a = np.array([point1["x"], point1["y"]])
-            b = np.array([point2["x"], point2["y"]])
-            c = np.array([point3["x"], point3["y"]])
+            a = np.array([point1["x"], point1["y"]], dtype=float)
+            b = np.array([point2["x"], point2["y"]], dtype=float)
+            c = np.array([point3["x"], point3["y"]], dtype=float)
             
             # Calculate vectors
             ba = a - b
             bc = c - b
             
+            # Avoid division by zero
+            norm_ba = np.linalg.norm(ba)
+            norm_bc = np.linalg.norm(bc)
+            if norm_ba == 0 or norm_bc == 0:
+                return 0
+            
             # Calculate angle
-            cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+            cosine_angle = np.dot(ba, bc) / (norm_ba * norm_bc)
             angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
             
-            return np.degrees(angle)
-        except:
+            return float(np.degrees(angle))
+        except Exception:
             return 0
     
     def analyze_general_posture(self, landmarks):

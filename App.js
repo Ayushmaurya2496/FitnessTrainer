@@ -314,9 +314,18 @@ app.get('/api/accuracy-stats', async (req, res) => {
 });
 
 app.post('/save-accuracy', async (req, res) => {
-    const { accuracy } = req.body;
-    await Progress.create({ accuracy });
-    res.json({ success: true });
+    try {
+        const { accuracy } = req.body || {};
+        if (typeof accuracy !== 'number' || Number.isNaN(accuracy)) {
+            return res.status(400).json({ success: false, error: 'Invalid accuracy' });
+        }
+        const normalized = Math.max(0, Math.min(100, Math.round(accuracy)));
+        await Progress.create({ accuracy: normalized });
+        return res.json({ success: true });
+    } catch (error) {
+        console.error('Save accuracy error:', error);
+        return res.status(500).json({ success: false, error: 'Failed to save accuracy' });
+    }
 });
 
 
