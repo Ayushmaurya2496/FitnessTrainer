@@ -1,8 +1,8 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 opencv-python==4.8.1.78
-# Let pip resolve the best available mediapipe version for the platform
-mediapipe
+# Use specific mediapipe version with confirmed Linux wheels for Python 3.11
+mediapipe==0.10.18
 # numpy 1.26.x supports Python 3.10, 3.11 and 3.12
 numpy==1.26.4
 Pillow==10.0.1
