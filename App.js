@@ -99,16 +99,6 @@ const Progress = mongoose.model('Progress', new mongoose.Schema({
 app.get('/', (req, res) => {
     res.render('home');
 });
-
-// Health check endpoint for Vercel
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        timestamp: new Date().toISOString(),
-        service: 'fitness-trainer-api'
-    });
-});
-
 app.get('/pose', (req, res) => {
     // Allow access to pose page but show protection overlay if not authenticated
     res.render('index');
@@ -143,8 +133,7 @@ app.post('/api/pose', async (req, res) => {
         const form = new FormData();
         form.append('file', imgBuffer, { filename: 'frame.jpg', contentType: 'image/jpeg' });
         
-        const pythonBackendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
-        const response = await axios.post(`${pythonBackendUrl}/analyze_pose/`, form, {
+        const response = await axios.post('http://localhost:8000/analyze_pose/', form, {
             headers: form.getHeaders(),
             maxContentLength: Infinity,
             maxBodyLength: Infinity
@@ -154,12 +143,7 @@ app.post('/api/pose', async (req, res) => {
         
         console.error('Pose API raw error:', error);
         let errMsg = 'Unknown error';
-        
-        // Check if it's a connection error (Python backend not available)
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-            errMsg = 'Python backend service is not available. Please check if the pose analysis service is running.';
-        }
-        else if (error instanceof AggregateError && Array.isArray(error.errors)) {
+        if (error instanceof AggregateError && Array.isArray(error.errors)) {
             errMsg = error.errors.map(e => e.message).join(' | ');
         }
         else if (error.isAxiosError) {
