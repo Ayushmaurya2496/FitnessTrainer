@@ -155,3 +155,26 @@ curl -X POST http://localhost:8000/analyze_pose/ \
 ---
 
 This Python backend provides enhanced pose detection capabilities for the AI Fitness Trainer application with improved accuracy and real-time analysis features.
+
+## 🚀 Deploy to Render
+
+You can deploy the Python backend as a Render Web Service.
+
+Option A: Blueprint (render.yaml)
+- Repo root includes `render.yaml`. In Render: New + → Blueprint → connect this repo → Review and Create.
+- Render will auto-detect root `python-backend`, install deps, and start Uvicorn.
+
+Option B: Manual Web Service
+- New + → Web Service → connect this repo.
+- Root Directory: `python-backend`
+- Environment: Python
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `uvicorn pose_analyzer:app --host 0.0.0.0 --port $PORT`
+- Health Check Path: `/health`
+
+Environment variables (Render → Settings → Environment):
+- `ALLOWED_ORIGINS` = `https://your-vercel-domain.vercel.app,http://localhost:3000`
+
+After deploy:
+- Copy the Render URL, e.g. `https://fitness-pose-analyzer.onrender.com`
+- In your Node app (Vercel), set `PY_BACKEND_URL` to that URL.
