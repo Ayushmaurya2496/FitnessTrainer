@@ -10,7 +10,6 @@ const session = require('express-session');
 const flash = require('connect-flash');
 
 require('dotenv').config();
-require('dotenv').config();
 const connectDB = require('./models/connect');
 
 (async () => {
@@ -28,8 +27,9 @@ const connectDB = require('./models/connect');
 
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+// Only create HTTP server and socket.io when running locally (not on Vercel)
+let server = null;
+let io = null;
 const { Session } = require('./models/session');
 const { User } = require('./models/user');
 app.set('view engine', 'ejs');
@@ -119,6 +119,8 @@ app.get('/dashboard', (req, res) => {
 app.use('/auth', require('./routes/auth'));
 
 const FormData = require('form-data'); 
+// Configure Python backend URL (Render or local)
+const PY_BACKEND_URL = process.env.PY_BACKEND_URL || 'http://localhost:8000';
 app.post('/api/pose', async (req, res) => {
     try {
         const { image } = req.body; 
@@ -133,7 +135,7 @@ app.post('/api/pose', async (req, res) => {
         const form = new FormData();
         form.append('file', imgBuffer, { filename: 'frame.jpg', contentType: 'image/jpeg' });
         
-        const response = await axios.post('http://localhost:8000/analyze_pose/', form, {
+    const response = await axios.post(`${PY_BACKEND_URL.replace(/\/$/, '')}/analyze_pose/`, form, {
             headers: form.getHeaders(),
             maxContentLength: Infinity,
             maxBodyLength: Infinity
@@ -330,23 +332,41 @@ app.post('/save-accuracy', async (req, res) => {
 
 
 
-io.on('connection', (socket) => {
-    console.log('User connected');
-    // Example----socket.emit('pose-alert', { message: 'Straighten Back' });
-});
+// Socket.io only when available (local/serverful)
+function wireSockets() {
+    if (!io) return;
+    io.on('connection', (socket) => {
+        console.log('User connected');
+        // Example----socket.emit('pose-alert', { message: 'Straighten Back' });
+    });
+}
 
-let PORT = parseInt(process.env.PORT) || 3000;
-const startServer = (port) => {
-    server.listen(port, () => {
-        console.log(`Server running on http://localhost:${port}`);
-    });
-    server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-            console.error(`Port ${port} in use, trying ${port + 1}...`);
-            startServer(port + 1);
-        } else {
-            console.error(err);
+// If running on Vercel serverless, export the app instead of listening on a port
+if (process.env.VERCEL) {
+    module.exports = app;
+} else {
+    // Local/standalone server start with port fallback
+    server = http.createServer(app);
+    io = socketIo(server);
+    wireSockets();
+    let PORT = Number(process.env.PORT) || 3000;
+    const startServer = (port) => {
+        try {
+            server.listen(port, () => {
+                console.log(`Server running on http://localhost:${port}`);
+            });
+            server.on('error', (err) => {
+                if (err && err.code === 'EADDRINUSE') {
+                    const next = port + 1;
+                    console.error(`Port ${port} in use, trying ${next}...`);
+                    startServer(next);
+                } else {
+                    console.error('Server error:', err);
+                }
+            });
+        } catch (e) {
+            console.error('Failed to start server:', e?.message || e);
         }
-    });
-};
-startServer(PORT);
+    };
+    startServer(PORT);
+}
