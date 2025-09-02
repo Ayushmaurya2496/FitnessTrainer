@@ -1,2 +1,2 @@
-# Render Python runtime
-python-3.11.9
+# Render Python runtime (mediapipe Linux wheels are stable on 3.10)
+python-3.10.13

@@ -1,13 +1,11 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 opencv-python==4.8.1.78
-# Use platform-specific mediapipe versions to ensure wheels are available
-# Windows (local dev): 0.10.21
+# Use platform-specific mediapipe versions with available wheels
+# Windows (local dev, Py 3.12): 0.10.21
 mediapipe==0.10.21; platform_system == "Windows"
-# Linux (Render): 0.10.20 has widely available manylinux wheels
-mediapipe==0.10.20; platform_system == "Linux"
-# macOS default to 0.10.20
-mediapipe==0.10.20; platform_system == "Darwin"
+# Linux (Render, Py 3.10): 0.10.14
+mediapipe==0.10.14; platform_system == "Linux"
 # numpy 1.26.x supports Python 3.11 and 3.12
 numpy==1.26.4
 Pillow==10.0.1
