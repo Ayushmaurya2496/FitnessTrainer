@@ -22,8 +22,6 @@ class WebcamPoseDetector:
             min_tracking_confidence=0.6      # Increased from 0.5
         )
         self.mp_draw = mp.solutions.drawing_utils
-        
-        # Initialize camera
         self.cap = cv2.VideoCapture(0)
         self.cap.set(3, self.SCREEN_WIDTH)   # Width
         self.cap.set(4, self.SCREEN_HEIGHT)  # Height
@@ -83,7 +81,7 @@ class WebcamPoseDetector:
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
         finally:
-            # Cleanup
+            
             try:
                 if hasattr(self, 'cap'):
                     self.cap.release()
