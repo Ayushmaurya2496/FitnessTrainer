@@ -15,26 +15,23 @@ const connectDB = require('./models/connect');
 (async () => {
     try {
         const mongoUri = process.env.MONGODB_URI;
-        if (!mongoUri) throw new Error('❌ MONGODB_URI is not defined in .env file');
+        if (!mongoUri) throw new Error('MONGODB_URI is not defined in .env file');
 
-        console.log('🔄 Connecting to MongoDB Atlas...');
+        console.log('Connecting to MongoDB Atlas...');
         await connectDB(mongoUri);
     } catch (err) {
-        console.error('❌ Database connection failed:', err.message);
+        console.error('Database connection failed:', err.message);
         process.exit(1);
     }
 })();
 
-
 const app = express();
-// Only create HTTP server and socket.io when running locally (not on Vercel)
 let server = null;
 let io = null;
 const { Session } = require('./models/session');
 const { User } = require('./models/user');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
 app.use((req, res, next) => {
     if (req.url.endsWith('.wasm')) {
         res.type('application/wasm');
@@ -48,7 +45,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '5mb' })); 
 app.set('trust proxy', 1);
-
 app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
@@ -59,14 +55,12 @@ app.use(session({
     }
 }));
 app.use(flash());
-
 // Expose flash messages to all views
 app.use((req, res, next) => {
     res.locals.flashSuccess = req.flash('success');
     res.locals.flashError = req.flash('error');
     next();
 });
-
 // Make auth state available to views
 app.use((req, res, next) => {
     res.locals.user = null;
@@ -88,7 +82,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
 const Progress = mongoose.model('Progress', new mongoose.Schema({
     date: { type: Date, default: Date.now },
     accuracy: { type: Number, min: 0, max: 100 },
@@ -100,7 +93,6 @@ app.get('/', (req, res) => {
     res.render('home');
 });
 app.get('/pose', (req, res) => {
-    // Allow access to pose page but show protection overlay if not authenticated
     res.render('index');
 });
 
@@ -266,7 +258,7 @@ app.get('/api/session-history', async (req, res) => {
     }
 });
 
-// Get real-time accuracy stats
+
 app.get('/api/accuracy-stats', async (req, res) => {
     try {
         let userId = null;
@@ -278,27 +270,22 @@ app.get('/api/accuracy-stats', async (req, res) => {
                 userId = payload._id;
             }
         } catch (e) {
-            // Continue without user
+            console.log(e);
         }
-
-        // Get recent sessions for stats
         const query = userId ? { user: userId } : {};
         const recentSessions = await Session.find(query)
             .sort({ date: -1 })
             .limit(5)
             .lean();
-
         const todaySessions = await Session.find({
             ...query,
             date: { 
                 $gte: new Date(new Date().setHours(0, 0, 0, 0)) 
             }
         }).lean();
-
         const todayAvg = todaySessions.length > 0
             ? Math.round(todaySessions.reduce((sum, s) => sum + s.accuracy, 0) / todaySessions.length)
             : 0;
-
         res.json({
             success: true,
             todayAverage: todayAvg,
@@ -330,8 +317,6 @@ app.post('/save-accuracy', async (req, res) => {
     }
 });
 
-
-
 // Socket.io only when available (local/serverful)
 function wireSockets() {
     if (!io) return;
@@ -354,6 +339,8 @@ if (process.env.VERCEL) {
         try {
             server.listen(port, () => {
                 console.log(`Server running on http://localhost:${port}`);
+                console.log(`Server running on http://localhost:${port}`);
+
             });
             server.on('error', (err) => {
                 if (err && err.code === 'EADDRINUSE') {

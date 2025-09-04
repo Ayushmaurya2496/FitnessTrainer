@@ -70,15 +70,14 @@ const cookieOptions = {
   secure: process.env.NODE_ENV === 'production',
   path: '/',
 };
-
-// ===================== REGISTER =====================
+//register
 router.post('/register', async (req, res) => {
   try {
     console.log(' Registration attempt for:', req.body?.username, req.body?.email);
     const { username, email, fullName, password, avatar } = req.body || {};
 
     if (!username || !email || !fullName || !password) {
-      console.log('❌ Registration failed: Missing required fields');
+      console.log(' Registration failed: Missing required fields');
       if (wantsHTML(req)) return res.status(400).redirect('/auth/register?error=missing');
       return res.status(400).json({ message: 'username, email, fullName, password are required' });
     }
@@ -156,7 +155,7 @@ router.post('/login', async (req, res) => {
     const { email, username, password } = req.body || {};
 
     if (!password || (!email && !username)) {
-      console.log('❌ Login failed: Missing credentials');
+      console.log(' Login failed: Missing credentials');
       if (wantsHTML(req)) { req.flash?.('error', 'Email/username and password are required'); return res.redirect('/auth/login'); }
       return res.status(400).json({ message: 'username or email and password are required' });
     }
@@ -169,14 +168,14 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user) {
-      console.log('❌ Login failed: User not found for:', username || email);
+      console.log('Login failed: User not found for:', username || email);
       if (wantsHTML(req)) { req.flash?.('error', 'User not found'); return res.redirect('/auth/login'); }
       return res.status(404).json({ message: 'User not found' });
     }
 
     const ok = await user.isPasswordCorrect(password);
     if (!ok) {
-      console.log('❌ Login failed: Invalid password for:', user.username);
+      console.log('Login failed: Invalid password for:', user.username);
       if (wantsHTML(req)) { req.flash?.('error', 'Invalid credentials'); return res.redirect('/auth/login'); }
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -202,7 +201,7 @@ router.post('/login', async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
-    console.log('✅ Login successful for user:', user.username, user.email);
+    console.log('Login successful for user:', user.username, user.email);
 
     const safeUser = toSafeUser(user);
 
@@ -229,7 +228,7 @@ router.post('/login', async (req, res) => {
 // ===================== LOGOUT =====================
 router.post('/logout', async (req, res) => {
   try {
-    console.log('🔄 Logout attempt...');
+    console.log('Logout attempt...');
     let userId = null;
     try {
       const bearer = req.headers['authorization'] || '';
@@ -261,10 +260,10 @@ router.post('/logout', async (req, res) => {
 
     if (wantsHTML(req)) {
       req.flash?.('success', 'Logged out');
-      console.log('✅ Logout successful (HTML redirect)');
+      console.log('Logout successful (HTML redirect)');
       return res.clearCookie('accessToken', cookieOptions).clearCookie('refreshToken', cookieOptions).redirect('/');
     }
-    console.log('✅ Logout successful (JSON response)');
+    console.log('Logout successful (JSON response)');
     return res.clearCookie('accessToken', cookieOptions).clearCookie('refreshToken', cookieOptions).status(200).json({ message: 'Logged out' });
   } catch (err) {
     console.error('Logout error:', err);
@@ -323,7 +322,7 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
-// ===================== ME =====================
+
 router.get('/me', requireAuth, (req, res) => {
   return res.status(200).json({ user: req.user });
 });
