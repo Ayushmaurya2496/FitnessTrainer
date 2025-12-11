@@ -46,7 +46,7 @@
   border-color: var(--success-green-dark) !important;
 }
 
-/* Enhanced sidebar */
+/* sidebar */
 .sidebar {
   background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%) !important;
   border: 1px solid rgba(0, 86, 179, 0.1);
@@ -58,7 +58,7 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Enhanced history items */
+/*  history items */
 .history-item {
   border-left: 4px solid var(--primary-blue) !important;
   background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%) !important;
