@@ -1,9 +1,11 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 opencv-python==4.8.1.78
-# Use older stable mediapipe with confirmed manylinux wheels
-mediapipe==0.9.3.0
-# Downgrade numpy for compatibility with older mediapipe
-numpy==1.21.6
+# Render/PyPI currently provides MediaPipe 0.10.x wheels; 0.9.3.0 is not available
+mediapipe==0.10.31
+# MediaPipe depends on numpy<2; pin to a compatible, widely available wheel
+numpy==1.26.4
+# MediaPipe is sensitive to protobuf major versions
+protobuf<5
 Pillow==10.0.1
 python-multipart==0.0.6

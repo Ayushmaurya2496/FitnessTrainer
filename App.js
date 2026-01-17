@@ -337,10 +337,8 @@ if (process.env.VERCEL) {
     let PORT = Number(process.env.PORT) || 3000;
     const startServer = (port) => {
         try {
-            server.listen(port, () => {
-                console.log(`Server running on http://localhost:${port}`);
-                console.log(`Server running on http://localhost:${port}`);
-
+            server.listen(port, '0.0.0.0', () => {
+                console.log(`Server listening on port ${port}`);
             });
             server.on('error', (err) => {
                 if (err && err.code === 'EADDRINUSE') {
