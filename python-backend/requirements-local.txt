@@ -1,0 +1,9 @@
+# Local development (Windows) dependencies
+# Uses newer wheels compatible with Python 3.12+
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+opencv-python>=4.9.0.80
+mediapipe>=0.10.14
+numpy>=1.26.4
+Pillow>=10.0.1
+python-multipart>=0.0.6

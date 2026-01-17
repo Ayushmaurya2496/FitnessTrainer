@@ -22,7 +22,17 @@ if %errorlevel% neq 0 (
 
 REM Install required packages
 echo 📦 Installing Python dependencies...
-pip install -r requirements.txt
+python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" > .pyver.tmp
+set /p PYVER=<.pyver.tmp
+del .pyver.tmp
+
+REM Use a local requirements file for Python 3.12+ (better wheel availability on Windows)
+if "%PYVER%"=="3.12" (
+    echo 📌 Detected Python %PYVER% - using requirements-local.txt
+    pip install -r requirements-local.txt
+) else (
+    pip install -r requirements.txt
+)
 
 if %errorlevel% equ 0 (
     echo ✅ Dependencies installed successfully!
